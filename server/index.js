@@ -11,11 +11,13 @@ const Project = require('./models/Project');
 
 const app = express();
 
-// UPDATED CORS: Added Netlify and your custom domain links
+// UPDATED CORS: Added both variations of your domain to prevent blocks
 app.use(cors({
     origin: [
-        "https://zaimaqbool.tech",
+        "https://zaimaqbool.tech", // Primary domain from your settings
         "https://www.zaimaqbool.tech",
+        "https://zainmaqbool.tech", // Alternate spelling
+        "https://www.zainmaqbool.tech",
         "https://zainmaqbooltech.netlify.app",
         "http://localhost:5173"
     ],
@@ -30,18 +32,23 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("System_Database: Online"))
     .catch(err => console.log("System_Database: Connection_Error", err));
 
-// 3. Email Transporter Setup
+// 3. Email Transporter Setup - UPDATED TO FIX ENETUNREACH ERROR
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587, // Switched from 465 to 587 for Railway compatibility
+    secure: false, // Must be false for port 587
     auth: {
         user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS,
+        pass: process.env.GMAIL_PASS, // Ensure this is a 16-character App Password
     },
+    tls: {
+        rejectUnauthorized: false // Prevents connection drops on cloud starts
+    }
 });
 
 /* --- API ROUTES --- */
 
-// NEW: Root Route to verify server is alive
+// Root Route to verify server is alive
 app.get('/', (req, res) => {
     res.send("System_Backend: Operational and Active.");
 });
@@ -54,15 +61,17 @@ app.post('/api/contact', async(req, res) => {
         await newMessage.save();
 
         const mailOptions = {
-            from: email,
+            from: process.env.GMAIL_USER, // Best practice: 'from' should be your authenticated email
+            replyTo: email, // The sender's actual email goes here
             to: process.env.GMAIL_USER,
             subject: `Portfolio Contact: ${name} - ${subject}`,
             text: `From: ${name} (${email})\n\nMessage:\n${message}`,
         };
+
         await transporter.sendMail(mailOptions);
         res.status(200).json({ success: true, message: "Signal_Sent" });
     } catch (error) {
-        console.error("CONTACT_ERROR:", error);
+        console.error("CONTACT_ERROR:", error); // This will show in your Railway logs
         res.status(500).json({ success: false, message: "Signal_Failed" });
     }
 });
