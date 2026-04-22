@@ -11,12 +11,13 @@ const Project = require('./models/Project');
 
 const app = express();
 
-// UPDATED CORS: Added both variations of your domain to prevent blocks
+// --- UPDATED CORS PROTOCOL ---
+// Includes both "zaimaqbool" (from your settings) and "zainmaqbool"
 app.use(cors({
     origin: [
-        "https://zaimaqbool.tech", // Primary domain from your settings
+        "https://zaimaqbool.tech",
         "https://www.zaimaqbool.tech",
-        "https://zainmaqbool.tech", // Alternate spelling
+        "https://zainmaqbool.tech",
         "https://www.zainmaqbool.tech",
         "https://zainmaqbooltech.netlify.app",
         "http://localhost:5173"
@@ -32,46 +33,56 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("System_Database: Online"))
     .catch(err => console.log("System_Database: Connection_Error", err));
 
-// 3. Email Transporter Setup - UPDATED TO FIX ENETUNREACH ERROR
+// 3. Email Transporter Setup (PORT 587 FIX)
+// This resolves the ENETUNREACH hang seen in your Railway logs
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 587, // Switched from 465 to 587 for Railway compatibility
-    secure: false, // Must be false for port 587
+    port: 587,
+    secure: false,
     auth: {
         user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS, // Ensure this is a 16-character App Password
+        pass: process.env.GMAIL_PASS,
     },
     tls: {
-        rejectUnauthorized: false // Prevents connection drops on cloud starts
+        rejectUnauthorized: false
     }
 });
 
 /* --- API ROUTES --- */
 
-// Root Route to verify server is alive
+// Health Check Route
 app.get('/', (req, res) => {
     res.send("System_Backend: Operational and Active.");
 });
 
-// Contact Form Route
+// Contact Form Route (Optimized to prevent "UPLOADING_SIGNAL" hang)
 app.post('/api/contact', async(req, res) => {
     const { name, email, subject, message } = req.body;
     try {
+        // Step A: Save to Database
         const newMessage = new Message({ name, email, subject, message });
         await newMessage.save();
 
         const mailOptions = {
-            from: process.env.GMAIL_USER, // Best practice: 'from' should be your authenticated email
-            replyTo: email, // The sender's actual email goes here
+            from: process.env.GMAIL_USER,
+            replyTo: email,
             to: process.env.GMAIL_USER,
             subject: `Portfolio Contact: ${name} - ${subject}`,
             text: `From: ${name} (${email})\n\nMessage:\n${message}`,
         };
 
-        await transporter.sendMail(mailOptions);
+        // Step B: Attempt to Send Email
+        // We wrap this so a mail timeout doesn't break the whole request
+        try {
+            await transporter.sendMail(mailOptions);
+        } catch (mailError) {
+            console.error("MAIL_SYSTEM_ERROR:", mailError);
+            // We continue anyway since the data is safe in the DB
+        }
+
         res.status(200).json({ success: true, message: "Signal_Sent" });
     } catch (error) {
-        console.error("CONTACT_ERROR:", error); // This will show in your Railway logs
+        console.error("CONTACT_ERROR:", error);
         res.status(500).json({ success: false, message: "Signal_Failed" });
     }
 });
