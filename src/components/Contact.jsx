@@ -77,13 +77,22 @@ const Contact = () => {
     };
 
     const handleSubmit = async(e) => {
-        e.preventDefault(); // Prevents page reload
+        e.preventDefault();
         setStatus('sending');
 
+        // Get the API URL from your Netlify environment variables
+        // Fallback to the direct URL if the variable isn't loaded
+        const baseURL =
+            import.meta.env.VITE_API_URL || 'https://zainmaqbooltech-production.up.railway.app';
+
         try {
-            const response = await fetch('zainmaqbooltech-production.up.railway.app/api/contact', {
+            // CRITICAL FIX: Added https:// and used the baseURL variable
+            const response = await fetch(`${baseURL}/api/contact`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
                 body: JSON.stringify({
                     name: formData.name,
                     email: formData.email,
@@ -92,16 +101,22 @@ const Contact = () => {
                 }),
             });
 
+            // Check if the response is actually JSON
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new TypeError("Oops, we didn't get JSON back from the server!");
+            }
+
             const data = await response.json();
 
             if (data.success) {
                 setStatus('success');
-                setFormData({ name: '', email: '', message: '' }); // Clear form
+                setFormData({ name: '', email: '', message: '' });
             } else {
                 setStatus('error');
             }
         } catch (err) {
-            console.error("System Error:", err);
+            console.error("System Error Details:", err);
             setStatus('error');
         }
     };
