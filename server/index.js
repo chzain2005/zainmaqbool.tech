@@ -14,8 +14,8 @@ const app = express();
 // UPDATED CORS: Added Netlify and your custom domain links
 app.use(cors({
     origin: [
-        "https://zainmaqbool.tech",
-        "https://www.zainmaqbool.tech",
+        "https://zaimaqbool.tech",
+        "https://www.zaimaqbool.tech",
         "https://zainmaqbooltech.netlify.app",
         "http://localhost:5173"
     ],
