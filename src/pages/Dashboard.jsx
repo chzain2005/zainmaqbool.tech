@@ -18,7 +18,7 @@ const Dashboard = () => {
 
     const fetchMessages = async() => {
         try {
-            const response = await fetch('http://localhost:5000/api/messages');
+            const response = await fetch('zainmaqbooltech-production.up.railway.app/api/messages');
             const data = await response.json();
             setMessages(data);
             setStatus('SYSTEM_READY_V1.0');
@@ -33,7 +33,7 @@ const Dashboard = () => {
         if (!window.confirm("CONFIRM_DELETION: Permanent removal of transmission?")) return;
 
         try {
-            await fetch(`http://localhost:5000/api/messages/${id}`, { method: 'DELETE' });
+            await fetch(`zainmaqbooltech-production.up.railway.app/api/messages/${id}`, { method: 'DELETE' });
             setMessages(messages.filter(msg => msg._id !== id));
         } catch (err) {
             console.error("Delete failed:", err);
