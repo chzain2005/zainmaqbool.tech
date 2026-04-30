@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import emailjs from '@emailjs/browser';
 
-// Hardcoded SVGs
+// Hardcoded SVGs for the UI
 const SVGIcons = {
     Email: () => ( <
         svg fill = "none"
@@ -62,6 +63,7 @@ const SVGIcons = {
 };
 
 const Contact = () => {
+    const formRef = useRef();
     const [formData, setFormData] = useState({ name: '', email: '', message: '' });
     const [status, setStatus] = useState('idle'); // 'idle' | 'sending' | 'success' | 'error'
 
@@ -77,31 +79,21 @@ const Contact = () => {
     };
 
     const handleSubmit = async(e) => {
-        e.preventDefault(); // Prevents page reload
+        e.preventDefault();
         setStatus('sending');
 
+        // --- REPLACE THESE WITH YOUR KEYS FROM EMAILJS ---
+        const SERVICE_ID = "service_jyxv2vl";
+        const TEMPLATE_ID = "template_ebztiyo";
+        const PUBLIC_KEY = "vRCxo0BC2uCG76O0x";
+
         try {
-            const response = await fetch('https://zainmaqbooltech-production.up.railway.app/api/contact', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: formData.name,
-                    email: formData.email,
-                    subject: "New Portfolio Message",
-                    message: formData.message
-                }),
-            });
+            await emailjs.sendForm(SERVICE_ID, TEMPLATE_ID, formRef.current, PUBLIC_KEY);
 
-            const data = await response.json();
-
-            if (data.success) {
-                setStatus('success');
-                setFormData({ name: '', email: '', message: '' }); // Clear form
-            } else {
-                setStatus('error');
-            }
+            setStatus('success');
+            setFormData({ name: '', email: '', message: '' });
         } catch (err) {
-            console.error("System Error:", err);
+            console.error("Transmission Error:", err);
             setStatus('error');
         }
     };
@@ -110,8 +102,7 @@ const Contact = () => {
         section id = "contact"
         className = "py-24 px-6 flex flex-col items-center bg-[#020604]" >
         <
-        div className = "max-w-6xl w-full" >
-        <
+        div className = "max-w-6xl w-full" > { /* Section Header */ } <
         div className = "flex items-center gap-6 mb-16" >
         <
         div className = "h-[1px] flex-1 bg-gradient-to-r from-transparent to-[#00FF41]/20" > < /div> <
@@ -122,7 +113,7 @@ const Contact = () => {
         div >
 
         <
-        div className = "grid grid-cols-1 lg:grid-cols-2 gap-12" > { /* Sidebar Info */ } <
+        div className = "grid grid-cols-1 lg:grid-cols-2 gap-12" > { /* Left Side: Contact Info */ } <
         motion.div initial = {
             { opacity: 0, x: -20 }
         }
@@ -154,7 +145,8 @@ const Contact = () => {
                 <
                 div className = "flex items-center gap-5 relative z-10" >
                 <
-                div className = "w-10 h-10 border border-[#00FF41]/20 rounded flex items-center justify-center text-[#00FF41] group-hover:border-[#00FF41] transition-colors" > { item.icon } < /div> <
+                div className = "w-10 h-10 border border-[#00FF41]/20 rounded flex items-center justify-center text-[#00FF41] group-hover:border-[#00FF41] transition-colors" > { item.icon } <
+                /div> <
                 div >
                 <
                 span className = "text-[#00FF41]/50 font-mono text-[10px] tracking-widest block" > { item.title } < /span> <
@@ -166,7 +158,7 @@ const Contact = () => {
         } <
         /motion.div>
 
-        { /* Form Container */ } <
+        { /* Right Side: Animated Form */ } <
         motion.div initial = {
             { opacity: 0, x: 20 }
         }
@@ -218,7 +210,7 @@ const Contact = () => {
                 svg > <
                 /div> <
                 h2 className = "text-[#00FF41] text-2xl font-black italic uppercase mb-2" > Signal_Received < /h2> <
-                p className = "text-white/60 text-xs tracking-widest uppercase" > Transmission logged to secure server successfully. < /p> <
+                p className = "text-white/60 text-xs tracking-widest uppercase" > Transmission routed to private inbox successfully. < /p> <
                 button onClick = {
                     () => setStatus('idle')
                 }
@@ -227,7 +219,8 @@ const Contact = () => {
                 /button> < /
                 motion.div >
             ) : ( <
-                motion.form key = "form"
+                motion.form ref = { formRef }
+                key = "form"
                 initial = {
                     { opacity: 0 }
                 }
@@ -249,7 +242,8 @@ const Contact = () => {
                 value = { formData.name }
                 onChange = { handleChange }
                 placeholder = "NAME"
-                required className = "w-full bg-black/40 border border-[#00FF41]/10 rounded px-4 py-3 text-white font-mono text-xs focus:outline-none focus:border-[#00FF41]/50 transition-all placeholder:text-white/10" / >
+                required className = "w-full bg-black/40 border border-[#00FF41]/10 rounded px-4 py-3 text-white font-mono text-xs focus:outline-none focus:border-[#00FF41]/50 transition-all placeholder:text-white/10" /
+                >
                 <
                 /div>
 
@@ -263,7 +257,8 @@ const Contact = () => {
                 value = { formData.email }
                 onChange = { handleChange }
                 placeholder = "EMAIL_ADDRESS"
-                required className = "w-full bg-black/40 border border-[#00FF41]/10 rounded px-4 py-3 text-white font-mono text-xs focus:outline-none focus:border-[#00FF41]/50 transition-all placeholder:text-white/10" / >
+                required className = "w-full bg-black/40 border border-[#00FF41]/10 rounded px-4 py-3 text-white font-mono text-xs focus:outline-none focus:border-[#00FF41]/50 transition-all placeholder:text-white/10" /
+                >
                 <
                 /div>
 
@@ -277,7 +272,9 @@ const Contact = () => {
                 value = { formData.message }
                 onChange = { handleChange }
                 placeholder = "Tell me about your project..."
-                required className = "w-full bg-black/40 border border-[#00FF41]/10 rounded px-4 py-3 text-white font-mono text-xs focus:outline-none focus:border-[#00FF41]/50 transition-all resize-none placeholder:text-white/10" > < /textarea> < /
+                required className = "w-full bg-black/40 border border-[#00FF41]/10 rounded px-4 py-3 text-white font-mono text-xs focus:outline-none focus:border-[#00FF41]/50 transition-all resize-none placeholder:text-white/10" >
+                <
+                /textarea> < /
                 div >
 
                 <
@@ -288,7 +285,9 @@ const Contact = () => {
 
                 {
                     status === 'error' && ( <
-                        p className = "text-red-500 text-[10px] text-center uppercase animate-pulse" > Error: Signal_Interrupted_Check_Connection < /p>
+                        p className = "text-red-500 text-[10px] text-center uppercase animate-pulse" >
+                        Error: Signal_Interrupted_Check_Credentials <
+                        /p>
                     )
                 } <
                 /motion.form>

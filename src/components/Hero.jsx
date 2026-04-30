@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { TypeAnimation } from 'react-type-animation';
-import profilePic from '../assets/zain.jpeg';
+import profilePic from '../assets/2.png';
 
 const Hero = () => {
     const techStack = ["React.js", "MySQL", "Tailwind", "Flutter", "Python"];
@@ -129,8 +129,10 @@ const Hero = () => {
         <
         img src = { profilePic }
         alt = "Profile"
-        className = "w-full h-full object-cover" / >
-        <
+        className = "w-full h-full object-cover"
+        style = {
+            { objectPosition: '50% 20%' } }
+        /> <
         /motion.div>
 
         {

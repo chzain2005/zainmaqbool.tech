@@ -3,42 +3,15 @@ import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
     const navigate = useNavigate();
-    const [status, setStatus] = useState('FETCHING_DATA...');
-    const [messages, setMessages] = useState([]);
+    const [status, setStatus] = useState('SYSTEM_READY_V1.0');
 
-    // 1. Security & Data Fetching
+    // Safety check: Ensure the user is authorized
     useEffect(() => {
         const isAdmin = localStorage.getItem('isAdmin');
         if (isAdmin !== 'true') {
             navigate('/login');
-        } else {
-            fetchMessages();
         }
     }, [navigate]);
-
-    const fetchMessages = async() => {
-        try {
-            const response = await fetch('zainmaqbooltech-production.up.railway.app/api/messages');
-            const data = await response.json();
-            setMessages(data);
-            setStatus('SYSTEM_READY_V1.0');
-        } catch (err) {
-            console.error("Signal lost:", err);
-            setStatus('CONNECTION_ERROR');
-        }
-    };
-
-    // 2. Delete Transmission
-    const deleteMessage = async(id) => {
-        if (!window.confirm("CONFIRM_DELETION: Permanent removal of transmission?")) return;
-
-        try {
-            await fetch(`zainmaqbooltech-production.up.railway.app/api/messages/${id}`, { method: 'DELETE' });
-            setMessages(messages.filter(msg => msg._id !== id));
-        } catch (err) {
-            console.error("Delete failed:", err);
-        }
-    };
 
     const handleLogout = () => {
         localStorage.removeItem('isAdmin');
@@ -46,113 +19,106 @@ const Dashboard = () => {
     };
 
     return ( <
-        div className = "min-h-screen p-8 pt-24 font-mono text-[#00FF41]" >
+        div className = "min-h-screen p-8 pt-24 font-mono text-[#00FF41] bg-[#020604]" >
         <
-        div className = "max-w-6xl mx-auto" > { /* Header Section */ } <
+        div className = "max-w-6xl mx-auto" >
+
+        { /* Header Section */ } <
         div className = "flex justify-between items-end border-b border-[#00FF41]/20 pb-6 mb-8" >
         <
         div >
         <
-        h1 className = "text-4xl font-black tracking-tighter italic uppercase" > Admin_Dashboard < /h1> <
-        p className = "text-[10px] opacity-60 mt-2" > ID: 0x48291 // STATUS: {status}</p>
+        h1 className = "text-4xl font-black tracking-tighter italic uppercase" >
+        Admin_Dashboard <
+        /h1> <
+        p className = "text-[10px] opacity-60 mt-2" >
+        ID: 0x48291 // STATUS: <span className="animate-pulse">{status}</span>
         <
+        /p> <
         /div> <
         button onClick = { handleLogout }
         className = "px-4 py-2 border border-red-500/50 text-red-500 text-[10px] uppercase hover:bg-red-500 hover:text-black transition-all" >
         Terminate_Session <
-        /button> < /
-        div >
+        /button> <
+        /div>
 
         <
-        div className = "grid grid-cols-1 md:grid-cols-3 gap-6" > { /* Incoming Transmissions (Messages) */ } <
-        div className = "md:col-span-2 bg-[#1a1a1a]/40 border border-[#00FF41]/10 rounded-lg p-6 backdrop-blur-sm" >
+        div className = "grid grid-cols-1 md:grid-cols-3 gap-6" > { /* Main Command Panel */ } <
+        div className = "md:col-span-2 bg-[#1a1a1a]/40 border border-[#00FF41]/10 rounded-lg p-10 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-[0_0_50px_rgba(0,255,65,0.02)]" >
         <
-        h3 className = "text-xs font-bold uppercase mb-4 border-b border-[#00FF41]/10 pb-2 flex justify-between" >
+        div className = "relative w-24 h-24 mb-8" >
         <
-        span > Incoming_Transmissions < /span> <
-        span className = "opacity-40" > { messages.length }
-        Units < /span> < /
-        h3 >
+        div className = "absolute inset-0 border-2 border-[#00FF41]/20 rounded-full animate-ping" > < /div> <
+        div className = "absolute inset-0 border border-[#00FF41]/40 rounded-full flex items-center justify-center" >
+        <
+        div className = "w-2 h-2 bg-[#00FF41] rounded-full shadow-[0_0_15px_#00FF41]" > < /div> <
+        /div> <
+        /div>
 
         <
-        div className = "space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar" > {
-            messages.length > 0 ? messages.map((msg) => ( <
-                div key = { msg._id }
-                className = "group p-4 border border-[#00FF41]/5 bg-black/20 rounded hover:border-[#00FF41]/30 transition-all" >
-                <
-                div className = "flex justify-between items-start mb-2" >
-                <
-                div className = "flex flex-col" >
-                <
-                span className = "text-[#00FF41] font-bold text-xs uppercase tracking-tight" > { msg.name } < /span> <
-                span className = "text-[9px] opacity-50 lowercase" > { msg.email } < /span> < /
-                div > <
-                div className = "flex items-center gap-4" >
-                <
-                span className = "text-[9px] opacity-40 italic" > { new Date(msg.date).toLocaleString() } < /span> <
-                button onClick = {
-                    () => deleteMessage(msg._id)
-                }
-                className = "text-red-500 opacity-0 group-hover:opacity-100 text-[10px] hover:underline transition-opacity" > [DELETE] <
-                /button> < /
-                div > <
-                /div> <
-                p className = "text-white/80 text-xs leading-relaxed border-l border-[#00FF41]/20 pl-3 mt-3" > { msg.message } < /p> < /
-                div >
-            )) : ( <
-                p className = "text-[10px] opacity-50 italic text-center py-20 uppercase tracking-widest animate-pulse" >
-                --No transmissions found in buffer--
-                <
-                /p>
-            )
-        } <
-        /div> < /
-        div >
+        h3 className = "text-xl font-black uppercase mb-4 tracking-[0.2em]" >
+        Inbound_Active <
+        /h3>
 
-        { /* Sidebar Stats */ } <
+        <
+        p className = "text-slate-400 text-xs leading-relaxed max-w-sm mb-10 uppercase opacity-70" >
+        The portfolio is now operating on a serverless protocol.All messages bypass the local database and are routed to your secure Gmail. <
+        /p>
+
+        <
+        a href = "https://mail.google.com"
+        target = "_blank"
+        rel = "noopener noreferrer"
+        className = "group relative px-10 py-4 bg-[#00FF41] text-black text-[10px] font-black uppercase tracking-[0.3em] overflow-hidden transition-all hover:scale-105" >
+        <
+        span className = "relative z-10" > Open_Primary_Inbox < /span> <
+        div className = "absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300 opacity-20" > < /div> <
+        /a> <
+        /div>
+
+        { /* System Diagnostics */ } <
         div className = "space-y-6" >
         <
-        div className = "bg-[#1a1a1a]/40 border border-[#00FF41]/10 rounded-lg p-6" >
+        div className = "bg-[#1a1a1a]/40 border border-[#00FF41]/10 rounded-lg p-6 backdrop-blur-sm" >
         <
-        h3 className = "text-xs font-bold uppercase mb-4" > Core_Metrics < /h3> <
-        div className = "space-y-3" >
+        h3 className = "text-[10px] font-bold uppercase mb-4 text-[#00FF41]/60 tracking-widest" > Protocol_Metrics < /h3> <
+        div className = "space-y-4" >
         <
-        div className = "flex justify-between text-[10px]" >
+        div className = "flex justify-between items-center" >
         <
-        span > DB_CONNECTION: < /span> <
-        span className = "text-white uppercase" > { status === 'SYSTEM_READY_V1.0' ? 'Active' : 'Offline' } < /span> < /
-        div > <
-        div className = "flex justify-between text-[10px]" >
+        span className = "text-[9px] uppercase opacity-50" > Provider < /span> <
+        span className = "text-white text-[10px] font-bold" > EmailJS / V4 < /span> <
+        /div> <
+        div className = "flex justify-between items-center" >
         <
-        span > TOTAL_MESSAGES: < /span> <
-        span className = "text-white" > { messages.length } < /span> < /
-        div > <
-        div className = "flex justify-between text-[10px]" >
+        span className = "text-[9px] uppercase opacity-50" > Encryption < /span> <
+        span className = "text-white text-[10px] font-bold" > SSL_TLS_1 .3 < /span> <
+        /div> <
+        div className = "flex justify-between items-center" >
         <
-        span > SESSION_LOG: < /span> <
-        span className = "text-white" > USER_ZAIN < /span> < /
-        div > <
-        /div> < /
-        div >
+        span className = "text-[9px] uppercase opacity-50" > Auth_Mode < /span> <
+        span className = "text-[#00FF41] text-[10px] font-bold" > STATIC_ZAIN < /span> <
+        /div> <
+        /div> <
+        /div>
 
         <
-        div className = "bg-[#1a1a1a]/40 border border-[#00FF41]/10 rounded-lg p-6" >
+        div className = "bg-[#1a1a1a]/40 border border-[#00FF41]/10 rounded-lg p-6 backdrop-blur-sm" >
         <
-        h3 className = "text-xs font-bold uppercase mb-2" > System_Log < /h3> <
-        p className = "text-[9px] opacity-40 leading-tight" >
-        &
-        gt; Initializing encryption... < br / >
-        &
-        gt; Handshake complete... < br / >
-        &
-        gt; Listening
-        for port 5000... <
-        /p> < /
-        div > <
-        /div> < /
-        div > <
-        /div> < /
-        div >
+        h3 className = "text-[10px] font-bold uppercase mb-3 text-[#00FF41]/60 tracking-widest" > Live_Logs < /h3> <
+        div className = "text-[9px] font-mono space-y-1 overflow-hidden" >
+        <
+        p className = "opacity-30" > & gt; Initializing_Vite_HMR... < /p> <
+        p className = "opacity-40" > & gt; Tailwind_v4_Engine: ON < /p> <
+        p className = "opacity-60" > & gt; Route: /admin-dashboard</p >
+        <
+        p className = "text-[#00FF41] animate-pulse" > & gt; Monitoring_Gmail_Link... < /p> <
+        /div> <
+        /div> <
+        /div> <
+        /div> <
+        /div> <
+        /div>
     );
 };
 
